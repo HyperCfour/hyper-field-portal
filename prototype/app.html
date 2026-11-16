@@ -1,0 +1,486 @@
+<!doctype html>
+<html lang="en-NZ" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>HYPER Field Support</title>
+<link rel="icon" href="assets/hyper-block-h.svg">
+<link rel="stylesheet" href="colors_and_type.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Hyper design system, light theme only. Tokens come from colors_and_type.css; this file composes them.
+   One column that works on a phone first and sits comfortably on a desktop. Sections float on the canvas, separated by space, not lines. */
+:root{
+  color-scheme:light;
+  /* Text on tinted status fills. The system's status hues are tuned for dark; these are darker tones of the same hues so 12 to 14px text meets AA on #FAFAFA. */
+  --ok-text:#15803D;
+  --warn-text:#B45309;
+}
+*{box-sizing:border-box}
+body.hyper{margin:0;padding:0 max(24px,env(safe-area-inset-right,0px)) var(--space-3xl) max(24px,env(safe-area-inset-left,0px))}
+.wrap{max-width:640px;margin:0 auto;display:flex;flex-direction:column;gap:var(--space-xl)}
+@media (min-width:720px){body.hyper{padding-left:var(--space-2xl);padding-right:var(--space-2xl)}.wrap{gap:var(--space-2xl)}}
+
+/* Header */
+.top{display:flex;align-items:center;justify-content:space-between;gap:var(--space-md);padding-top:var(--space-lg)}
+.logo{height:14px;width:auto;display:block;color:var(--text1)}
+.who{display:flex;align-items:center;gap:var(--space-sm);font-size:var(--text-caption);color:var(--text3)}
+.who button{height:auto;padding:4px 0;font-size:var(--text-caption)}
+.title{font-size:var(--text-h2);line-height:var(--lh-h2);letter-spacing:var(--tracking-h2);font-weight:300;color:var(--text1);margin:0;text-wrap:balance}
+.proto{font-size:var(--text-caption);line-height:var(--lh-caption);color:var(--text3);border:1px solid var(--border);border-radius:var(--radius-component);padding:var(--space-sm) var(--space-md)}
+.proto strong{font-weight:500;color:var(--text2)}
+.steps{display:flex;gap:var(--space-sm)}
+.steps span{flex:1;height:2px;background:var(--surface3)}
+.steps span.on{background:var(--text1)}
+
+/* Sections */
+.section{display:flex;flex-direction:column;gap:var(--space-md)}
+@media (prefers-reduced-motion: no-preference){.section{animation:fade var(--duration-medium) var(--ease-medium)}@keyframes fade{from{opacity:0}to{opacity:1}}}
+.section h2{font-size:var(--text-h3);line-height:var(--lh-h3);letter-spacing:0;font-weight:400;color:var(--text1);margin:0}
+.between{display:flex;justify-content:space-between;align-items:baseline;gap:var(--space-md);flex-wrap:wrap}
+.caption{font-size:var(--text-caption);line-height:var(--lh-caption);color:var(--text3)}
+.body-sm{font-size:var(--text-body-sm);color:var(--text2)}
+
+/* Inputs */
+.field{display:flex;flex-direction:column;gap:var(--space-sm)}
+.field > label{font-size:var(--text-body-sm);color:var(--text2);font-weight:400}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-md)}
+@media (max-width:420px){.row2{grid-template-columns:1fr}}
+input[type=text],input[type=tel],input[type=search],textarea{width:100%;height:44px;background:transparent;border:1px solid var(--border-visible);border-radius:var(--radius-control);padding:0 var(--space-md);font-family:var(--font-sans);font-size:var(--text-body);color:var(--text1);-webkit-appearance:none;appearance:none}
+textarea{height:auto;min-height:96px;padding:12px var(--space-md);resize:vertical;line-height:var(--lh-body)}
+input::placeholder,textarea::placeholder{color:var(--text3)}
+input:focus-visible,textarea:focus-visible{outline:none;border-color:var(--text1)}
+input[aria-invalid=true]{border-color:var(--error)}
+
+/* Buttons */
+button{font-family:var(--font-sans);font-size:var(--text-body-sm);font-weight:500;line-height:1;height:44px;padding:12px var(--space-lg);border:0;border-radius:var(--radius-control);cursor:pointer;transition:background var(--duration-fast) var(--ease-fast),color var(--duration-fast) var(--ease-fast),opacity var(--duration-fast) var(--ease-fast)}
+button:active{opacity:.7}
+button[disabled]{opacity:.4;pointer-events:none}
+.btn-primary{background:var(--accent);color:var(--on-accent)}
+.btn-secondary{background:transparent;color:var(--text1);border:1px solid var(--text1)}
+.btn-ghost{background:transparent;color:var(--text2);height:36px;padding:6px 0;text-align:left;align-self:flex-start}
+.btn-back{display:inline-flex;align-items:center;gap:6px}
+.btn-back svg{width:16px;height:16px}
+@media (hover:hover){
+  .btn-primary:hover{background:var(--accent-hover)}
+  .btn-secondary:hover{background:var(--surface2)}
+  .btn-ghost:hover{color:var(--text1)}
+  .row:hover{background:var(--surface1)}
+  .tog .tag:hover{background:var(--surface3)}
+}
+
+/* Rows: sites and screens sit on the canvas. Selected: surface2 + accent left border. */
+.rows{display:flex;flex-direction:column}
+.row{display:flex;justify-content:space-between;align-items:center;gap:var(--space-md);width:100%;min-height:48px;height:auto;padding:12px var(--space-md);background:transparent;border:0;border-bottom:1px solid var(--border);border-left:2px solid transparent;border-radius:0;color:inherit;font:inherit;font-size:var(--text-body);font-weight:400;line-height:var(--lh-body);text-align:left}
+.rows .row:first-child{border-top:1px solid var(--border)}
+.row[aria-pressed=true]{background:var(--surface2);border-left-color:var(--accent)}
+.row > div{min-width:0}
+.row .t{color:var(--text1)}
+.row .m{font-size:var(--text-body-sm);color:var(--text2)}
+.row .end{display:flex;align-items:center;gap:var(--space-sm);flex:none}
+.row .ck{display:none;width:18px;height:18px;color:var(--accent)}
+.row[aria-pressed=true] .ck{display:block}
+.mono{font-family:var(--font-mono);font-size:13px;font-variant-numeric:tabular-nums}
+
+/* Tags: status and selectable symptoms */
+.tag{display:inline-flex;align-items:center;height:28px;padding:4px 12px;border-radius:var(--radius-pill);font-size:var(--text-caption);font-weight:500;background:var(--surface2);color:var(--text2);white-space:nowrap}
+.tag-ok{background:var(--success-bg);color:var(--ok-text)}
+.tag-bad{background:var(--error-bg);color:var(--accent-text)}
+.tag-warn{background:var(--warning-bg);color:var(--warn-text)}
+.tags{display:flex;flex-wrap:wrap;gap:var(--space-sm)}
+.tog{display:inline-flex;position:relative}
+.tog input{position:absolute;opacity:0;pointer-events:none}
+.tog .tag{height:36px;padding:8px 14px;font-size:var(--text-body-sm);cursor:pointer;transition:background var(--duration-fast) var(--ease-fast),color var(--duration-fast) var(--ease-fast)}
+.tog input:checked + .tag{background:var(--accent-subtle);color:var(--accent-text)}
+.tog input:focus-visible + .tag{outline:1px solid var(--accent);outline-offset:2px}
+
+/* Checks */
+.checks{display:flex;flex-direction:column}
+.check{display:flex;gap:var(--space-md);align-items:flex-start;min-height:48px;padding:12px 0;border-bottom:1px solid var(--border);font-size:var(--text-body);color:var(--text1);font-weight:400;cursor:pointer}
+.checks .check:first-child{border-top:1px solid var(--border)}
+.check input{width:20px;height:20px;margin:2px 0 0;border-radius:var(--radius-element);accent-color:var(--accent);flex:none}
+.check.single{border:0;padding:4px 0;min-height:0}
+
+/* Summary and notices */
+.summary{display:flex;justify-content:space-between;gap:var(--space-md);align-items:center;background:var(--surface1);border:1px solid var(--border);border-radius:var(--radius-component);padding:var(--space-md)}
+.summary > div{min-width:0}
+.summary .t{color:var(--text1)}
+.summary .m{font-size:var(--text-body-sm);color:var(--text2)}
+.summary ul{margin:var(--space-sm) 0 0;padding-left:18px;font-size:var(--text-body-sm);color:var(--text2)}
+.summary li{margin:2px 0}
+.notice{border-radius:var(--radius-component);padding:12px var(--space-md);font-size:var(--text-body-sm);line-height:var(--lh-body)}
+.notice-warn{background:var(--warning-bg);color:var(--warn-text)}
+.notice-p1{background:var(--error-bg);color:var(--accent-text)}
+.err{color:var(--accent-text);font-size:var(--text-caption)}
+
+/* Photos */
+.thumbs{display:flex;gap:12px;flex-wrap:wrap}
+.thumb{position:relative;width:72px;height:72px;padding:0;border:1px solid var(--border-visible);border-radius:var(--radius-component);background:transparent;overflow:visible}
+.thumb img{display:block;width:100%;height:100%;object-fit:cover;border-radius:var(--radius-component)}
+.thumb .x{position:absolute;top:-8px;right:-8px;width:24px;height:24px;border-radius:var(--radius-pill);background:var(--surface3);color:var(--text1);display:grid;place-items:center}
+.thumb .x svg{width:14px;height:14px}
+
+/* Confirmation */
+.done{font-size:var(--text-h2);line-height:var(--lh-h2);letter-spacing:var(--tracking-h2);font-weight:300;color:var(--text1)}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:var(--space-sm) var(--space-md);font-size:var(--text-body-sm)}
+.kv dt{color:var(--text3)}
+.kv dd{margin:0;min-width:0;color:var(--text1);overflow-wrap:anywhere}
+.kv ul{margin:0;padding-left:18px}
+.actions{display:flex;gap:12px;flex-wrap:wrap}
+.actions button{flex:1}
+pre{background:var(--surface1);border:1px solid var(--border);border-radius:var(--radius-component);padding:var(--space-md);overflow:auto;max-height:420px;font-size:12px;line-height:1.5;margin:0;color:var(--text2)}
+
+footer{padding-top:var(--space-xl);font-size:var(--text-caption);color:var(--text3)}
+</style>
+</head>
+<body class="hyper">
+
+<div class="wrap">
+  <div class="top">
+    <svg class="logo" viewBox="0 0 1066.52 245.28" fill="currentColor" role="img" aria-label="HYPER"><path d="M149.74,261.36H206.5v99.16h84.8V261.36h56.76V506.64H291.3V409.23H206.5v97.41H149.74Z" transform="translate(-149.74 -261.36)"/><path d="M593.31,261.36,471.73,506.64H408.66l45.55-92.51-86.9-152.77h65.88l52.2,96.71,45.2-96.71Z" transform="translate(-149.74 -261.36)"/><path d="M802.48,350c0,51.51-37.14,88.65-88,88.65H666.88v68H610.12V261.36H714.53C765.69,261.36,802.48,298.5,802.48,350ZM745,350c0-24.52-16.47-42.4-39.25-42.4H666.88v84.8h38.89C728.55,392.41,745,374.54,745,350Z" transform="translate(-149.74 -261.36)"/><path d="M829.09,261.36h150v45.56H885.85v55.7h93.21v44.51H885.85v54h93.21v45.55h-150Z" transform="translate(-149.74 -261.36)"/><path d="M1170.36,428.85l43.1,77.79H1149l-38.55-68h-29.78v68h-56.77V261.36h104.43c51.15,0,87.94,37.14,87.94,88.65C1216.26,385.75,1198.39,414.84,1170.36,428.85Zm-89.7-36.44h38.89c22.78,0,39.25-17.87,39.25-42.4s-16.47-42.4-39.25-42.4h-38.89Z" transform="translate(-149.74 -261.36)"/></svg>
+    <span class="who" id="who" hidden><span id="who-name"></span><button class="btn-ghost" id="edit" type="button">Edit</button></span>
+  </div>
+  <div class="section" style="gap:var(--space-sm)">
+    <div class="label">Field support, Mobil</div>
+    <h1 class="title">Raise a screen fault</h1>
+  </div>
+  <div class="steps" aria-hidden="true"><span id="st1"></span><span id="st2"></span><span id="st3"></span><span id="st4"></span></div>
+  <main id="view"></main>
+  <div class="proto" role="note"><strong>Prototype.</strong> Real Mobil sites and screens from the register, snapshot <span id="snap"></span>. Submitting shows the tickets that would be created. Nothing is sent.</div>
+  <footer>HYPER Network Operations</footer>
+</div>
+
+<script src="data.js"></script>
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const mk = (storage) => ({
+  get(k){ try { return JSON.parse(storage.getItem(k)); } catch(e){ return null; } },
+  set(k,v){ try { storage.setItem(k, JSON.stringify(v)); } catch(e){} },
+  del(k){ try { storage.removeItem(k); } catch(e){} }
+});
+const local = mk(localStorage), session = mk(sessionStorage);
+const ICON_CHECK = '<svg class="ck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
+const ICON_X = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>';
+const ICON_BACK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>';
+
+const sites = SITES.map(([id,name,street,region]) => ({id,name,street,region}));
+const screens = SCREENS.map(([id,code,device,position,cms,lifecycle,health,since,site]) => ({id,code,device,position,cms,lifecycle,health,since,site}));
+const bySite = {}; screens.forEach(s => (bySite[s.site] ??= []).push(s));
+sites.forEach(s => { s.count = (bySite[s.id] || []).length; });
+$('#snap').textContent = SNAPSHOT;
+
+// Ticket form options mirror the Support Tickets board labels.
+// Pre-check 1 (Screen ID confirmed) is set automatically because the screen was picked from the register.
+// Pre-check 6 (photo) is set automatically when a photo is attached. Photos are optional.
+const SYMPTOMS = [['1','Blank or no display'],['2','Frozen image'],['3','Wrong or missing content'],['5','Flickering or colour fault'],['6','Physical damage'],['8','Other']];
+const CHECKS = [['2','Power checked at the wall and the player'],['3','Cables checked and reseated'],['4','Store internet working'],['5','Player restarted']];
+const MAX_PHOTOS = 4, PHOTO_EDGE = 1600, PHOTO_QUALITY = 0.8;
+
+/* pure helpers */
+// NZ mobiles only. Accepts 021 123 4567, 0211234567, +64 21 123 4567, 6421234567; returns +642… or null.
+const nzMobile = raw => {
+  const d = String(raw || '').replace(/[^\d+]/g, '');
+  const n = d.startsWith('+64') ? d.slice(3) : d.startsWith('64') ? d.slice(2) : d.startsWith('0') ? d.slice(1) : d;
+  return /^2\d{7,9}$/.test(n) ? '+64' + n : null;
+};
+const fmtPhone = p => String(p || '').replace(/^\+64(\d{2})(\d{3})(\d+)$/, '+64 $1 $2 $3');
+// Register device names are "<site> - <position>", sometimes with the site abbreviated ("Mobil 10th Ave - Menu Board 1").
+// No site name contains a dash, so strip up to the first one.
+const shortName = x => x.device.replace(/^[^-]*-\s*/, '').trim() || x.device;
+const liveAt = (site, bySiteMap) => (bySiteMap[site.id] || []).filter(x => x.lifecycle === 'Live');
+// Whole site: every live screen at the site is selected, and there are at least two. One ticket per screen, all P1.
+const isWholeSite = (site, picked, bySiteMap) => { const live = liveAt(site, bySiteMap); return live.length >= 2 && live.every(x => picked.some(p => p.id === x.id)); };
+const buildTickets = ({ site, picked, form, tech, bySiteMap }) => {
+  const p1 = isWholeSite(site, picked, bySiteMap);
+  return picked.map(x => {
+    const rest = picked.filter(p => p.id !== x.id).map(p => p.code);
+    const lines = [
+      p1 ? `Whole site affected: all ${picked.length} screens reported in one submission.` : (rest.length ? `Reported with ${rest.join(', ')} in the same submission.` : ''),
+      form.notes
+    ].filter(Boolean);
+    return { name: x.device, code: x.code, cols: {
+      screen_ref: x.code,
+      t_screen: { item_ids: [Number(x.id)] },
+      req_type: { label: 'Fault' },
+      channel: { label: 'Partner escalation' },
+      raised_org: { label: 'Partner' },
+      priority: { label: p1 ? 'P1 Critical' : 'P2 High' },
+      symptom: { ids: form.symptoms.map(Number) },
+      prechecks: { ids: [1, ...form.checks.map(Number), ...(form.photos.length ? [6] : [])] },
+      raised_by: `${tech.name} (Clarksons)`,
+      c_phone: { phone: tech.phone, countryShortName: 'NZ' },
+      ...(tech.job ? { partner_ref: tech.job } : {}),
+      description: { text: lines.join('\n') }
+    } };
+  });
+};
+/* end pure helpers */
+
+/* Profile: name and mobile. Remembered on the phone when the technician ticks "Remember me"; otherwise kept for this visit only. */
+const loadTech = () => local.get('hyperTech') || session.get('hyperTech') || { name: '', phone: '', remember: true };
+const saveTech = t => { if (t.remember){ local.set('hyperTech', t); session.del('hyperTech'); } else { session.set('hyperTech', t); local.del('hyperTech'); } };
+const ready = () => !!(state.tech.name && nzMobile(state.tech.phone));
+
+const blank = () => ({ symptoms: [], checks: [], notes: '', job: '', photos: [] });
+const state = { tech: loadTech(), site: null, picked: [], form: blank(), restored: false };
+
+// Draft: kept on the phone so a dropped connection or a reload doesn't mean retyping. Photos are not kept (too big, and still on the phone).
+const saveDraft = () => local.set('hyperDraft', { site: state.site?.id || null, picked: state.picked.map(x => x.id), symptoms: state.form.symptoms, checks: state.form.checks, notes: state.form.notes, job: state.form.job });
+const clearDraft = () => local.del('hyperDraft');
+function loadDraft(){
+  const d = local.get('hyperDraft'); if (!d || !d.site) return false;
+  const site = sites.find(s => s.id === d.site); if (!site) return false;
+  state.site = site;
+  state.picked = (d.picked || []).map(id => screens.find(x => x.id === id)).filter(Boolean);
+  state.form = { ...blank(), symptoms: d.symptoms || [], checks: d.checks || [], notes: d.notes || '', job: d.job || '' };
+  state.restored = state.picked.length > 0 || !!(d.notes || (d.symptoms || []).length);
+  return true;
+}
+
+const daysSince = d => d ? Math.max(0, Math.floor((Date.now() - new Date(d + 'T00:00:00').getTime()) / 864e5)) : null;
+function tag(s){
+  if (s.lifecycle === 'Out of rotation') return '<span class="tag tag-warn">Switched off</span>';
+  if (s.health === 'Online') return '<span class="tag tag-ok">Online</span>';
+  if (s.health === 'Offline'){ const d = daysSince(s.since); return `<span class="tag tag-bad">Offline${d !== null ? ` ${d}d` : ''}</span>`; }
+  if (s.health === 'Paused') return '<span class="tag tag-warn">Paused</span>';
+  return '<span class="tag">Not yet seen</span>';
+}
+const wholeSite = () => isWholeSite(state.site, state.picked, bySite);
+function steps(n){ for (let i = 1; i <= 4; i++) $('#st' + i).className = i <= n ? 'on' : ''; }
+function whoLine(){ const on = ready(); $('#who').hidden = !on; if (on) $('#who-name').textContent = `${state.tech.name}, Clarksons`; }
+$('#edit').onclick = () => go('tech');
+
+/* Navigation. Each step is a history entry, so the phone's back button and the Back control do the same thing
+   and never leave the app. A step only opens when what it needs is in place; otherwise the nearest earlier step opens. */
+const VIEWS = { tech: viewTech, site: viewSite, screens: viewScreens, form: viewForm, done: viewDone };
+const PREV = { tech: 'tech', site: 'tech', screens: 'site', form: 'screens', done: 'screens' };
+const CAN = { tech: () => true, site: () => ready(), screens: () => ready() && !!state.site, form: () => ready() && !!state.site && state.picked.length > 0, done: () => false };
+let cur = 0;
+function render(name){
+  const v = $('#view'); v.oninput = null; v.onchange = null;
+  VIEWS[name](); window.scrollTo({ top: 0 });
+  const h = $('#view h2'); if (h){ h.setAttribute('tabindex', '-1'); h.focus({ preventScroll: true }); }
+}
+function go(name, { replace = false } = {}){
+  if (replace){ history.replaceState({ view: name, i: cur }, ''); }
+  else { cur += 1; history.pushState({ view: name, i: cur }, ''); }
+  render(name);
+}
+function back(){ if (cur > 0) history.back(); else go(PREV[history.state?.view || 'site'], { replace: true }); }
+window.onpopstate = e => {
+  let v = e.state?.view || 'site'; cur = e.state?.i ?? 0;
+  while (!CAN[v]()) v = PREV[v];
+  render(v);
+};
+const backBtn = (label) => `<button class="btn-ghost btn-back" id="back" type="button">${ICON_BACK}${label}</button>`;
+
+/* Step 1: who you are */
+function viewTech(){
+  steps(1); whoLine();
+  const t = state.tech, editing = ready();
+  $('#view').innerHTML = `<section class="section">
+    ${editing ? backBtn('Back') : ''}
+    <h2>Your details</h2>
+    <p class="body-sm">The desk uses your mobile to call you back on site.</p>
+    <div class="field"><label for="t-name">Your name</label><input id="t-name" type="text" autocomplete="name" value="${esc(t.name)}"></div>
+    <div class="field"><label for="t-phone">NZ mobile</label><input id="t-phone" type="tel" autocomplete="tel" inputmode="tel" placeholder="021 123 4567" value="${esc(t.phone)}"></div>
+    <label class="check single"><input type="checkbox" id="t-remember" ${t.remember !== false ? 'checked' : ''}><span>Remember me on this phone<br><span class="caption">Skips this step next time. Untick on a shared device.</span></span></label>
+    <p class="err" id="t-err" hidden></p>
+    <button class="btn-primary" id="t-next" type="button">${editing ? 'Save' : 'Find the site'}</button>
+  </section>`;
+  if (editing) $('#back').onclick = back;
+  $('#t-next').onclick = () => {
+    const name = $('#t-name').value.trim(), phone = nzMobile($('#t-phone').value), remember = $('#t-remember').checked;
+    $('#t-name').setAttribute('aria-invalid', String(!name)); $('#t-phone').setAttribute('aria-invalid', String(!phone));
+    const err = !name ? 'Add your name.' : !phone ? 'Enter an NZ mobile number, e.g. 021 123 4567.' : '';
+    if (err){ const e = $('#t-err'); e.textContent = err; e.hidden = false; return; }
+    state.tech = { name, phone, remember }; saveTech(state.tech);
+    if (editing) back(); else go('site');
+  };
+}
+
+/* Step 2: find the site */
+function viewSite(){
+  steps(2); whoLine();
+  $('#view').innerHTML = `<section class="section">
+    <h2>Which Mobil site are you at?</h2>
+    <div class="field"><label for="q">Search by site, street or town</label><input id="q" type="search" placeholder="e.g. Kamo, Cameron Road, Tauranga" autocomplete="off"></div>
+    <button class="btn-ghost" id="near" type="button">Use my location</button>
+    <p class="caption" id="near-note" hidden>Location isn't available in this prototype. The live version lists the nearest sites first.</p>
+    <div class="rows" id="results" aria-live="polite"></div>
+  </section>`;
+  const q = $('#q'); q.focus();
+  const renderHits = () => {
+    const t = q.value.trim().toLowerCase();
+    const hits = (t ? sites.filter(s => (s.name + ' ' + s.street + ' ' + s.region).toLowerCase().includes(t)) : sites).slice(0, t ? 30 : 8);
+    $('#results').innerHTML = hits.map(s => `<button class="row" type="button" data-id="${s.id}"><div><div class="t">${esc(s.name)}</div><div class="m">${esc(s.street)}</div></div><div class="end"><span class="m mono">${s.count} screen${s.count === 1 ? '' : 's'}</span></div></button>`).join('')
+      + (t && !hits.length ? '<p class="caption" style="padding:12px 16px">No Mobil site matches. Check the spelling, or call the HYPER desk.</p>' : '');
+    document.querySelectorAll('#results .row').forEach(b => b.onclick = () => {
+      const site = sites.find(s => s.id === b.dataset.id);
+      if (!state.site || state.site.id !== site.id){ state.picked = []; state.form = blank(); }
+      state.site = site; saveDraft(); go('screens');
+    });
+  };
+  q.oninput = renderHits; renderHits();
+  $('#near').onclick = () => { $('#near-note').hidden = false; };
+}
+
+/* Step 3: pick the screens (one or more) */
+function viewScreens(){
+  steps(3); whoLine();
+  const s = state.site, list = (bySite[s.id] || []).slice().sort((a, b) => a.device.localeCompare(b.device));
+  const live = list.filter(x => x.lifecycle === 'Live');
+  const sel = id => state.picked.some(p => p.id === id);
+  $('#view').innerHTML = `<section class="section">
+    ${backBtn('Change site')}
+    <div><div class="label">${esc(s.region)}</div><h2>${esc(s.name)}</h2><div class="caption">${esc(s.street)}</div></div>
+    <div class="between"><div class="label">Which screens have the fault? ${list.length} registered</div><button class="btn-ghost" id="all" type="button"></button></div>
+    <div class="rows" id="list">${list.map(x => `<button class="row" type="button" data-id="${x.id}" aria-pressed="${sel(x.id)}"><div><div class="t">${esc(shortName(x))}</div><div class="m"><span class="mono">${esc(x.code)}</span>, ${esc(x.position)}, ${esc(x.cms)}</div></div><div class="end">${ICON_CHECK}${tag(x)}</div></button>`).join('')}</div>
+    <p class="caption">Screen not listed? It isn't on HYPER's register, so it can't be supported through this form. Call the HYPER desk.</p>
+    <p class="notice notice-p1" id="whole" hidden>All ${live.length} live screens selected. This is raised as P1 Critical, one ticket per screen.</p>
+    <button class="btn-primary" id="next" type="button">Continue</button>
+  </section>`;
+  const sync = () => {
+    document.querySelectorAll('#list .row').forEach(b => b.setAttribute('aria-pressed', String(sel(b.dataset.id))));
+    const n = state.picked.length;
+    $('#next').textContent = n ? `Continue with ${n} screen${n === 1 ? '' : 's'}` : 'Continue';
+    $('#next').disabled = !n;
+    $('#whole').hidden = !wholeSite();
+    const allLive = live.length && live.every(x => sel(x.id));
+    $('#all').textContent = allLive ? 'Clear all' : `Select all ${live.length} live screens`;
+    $('#all').hidden = live.length < 2;
+    saveDraft();
+  };
+  document.querySelectorAll('#list .row').forEach(b => b.onclick = () => {
+    const x = screens.find(z => z.id === b.dataset.id);
+    state.picked = sel(x.id) ? state.picked.filter(p => p.id !== x.id) : [...state.picked, x];
+    sync();
+  });
+  $('#all').onclick = () => { state.picked = live.every(x => sel(x.id)) ? [] : live.slice(); sync(); };
+  $('#back').onclick = back;
+  $('#next').onclick = () => { if (state.picked.length) go('form'); };
+  sync();
+}
+
+/* Photos: resized on the phone before upload. 1600 px long edge, JPEG, roughly 200 to 400 KB each. */
+async function shrink(file){
+  const url = URL.createObjectURL(file);
+  try {
+    const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = url; });
+    const k = Math.min(1, PHOTO_EDGE / Math.max(img.naturalWidth, img.naturalHeight));
+    const c = document.createElement('canvas');
+    c.width = Math.max(1, Math.round(img.naturalWidth * k)); c.height = Math.max(1, Math.round(img.naturalHeight * k));
+    c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+    return c.toDataURL('image/jpeg', PHOTO_QUALITY);
+  } finally { URL.revokeObjectURL(url); }
+}
+const kb = dataUrl => Math.round(dataUrl.length * 0.75 / 1024);
+
+/* Step 4: what's wrong + checks */
+function viewForm(){
+  steps(4); whoLine();
+  const s = state.site, f = state.form, picked = state.picked;
+  const sorted = picked.slice().sort((a, b) => a.device.localeCompare(b.device));
+  const head = picked.length === 1
+    ? `<div class="summary"><div><div class="t">${esc(picked[0].device)}</div><div class="m"><span class="mono">${esc(picked[0].code)}</span>, ${esc(s.name)}</div></div>${tag(picked[0])}</div>`
+    : `<div class="summary"><div><div class="t">${picked.length} screens at ${esc(s.name)}</div><ul>${sorted.map(x => `<li>${esc(shortName(x))} <span class="mono">${esc(x.code)}</span></li>`).join('')}</ul></div></div>`;
+  const offCount = picked.filter(x => x.lifecycle === 'Out of rotation').length;
+  const off = offCount ? `<p class="notice notice-warn">${offCount === 1 && picked.length === 1 ? 'Mobil has switched this screen off' : `${offCount} of these screens are switched off by Mobil`} until further notice. Only raise a fault if you were asked to work on ${offCount === 1 ? 'it' : 'them'}.</p>` : '';
+  const p1 = wholeSite() ? `<p class="notice notice-p1">Whole site affected: raised as P1 Critical, one ticket per screen.</p>` : '';
+  $('#view').innerHTML = `<section class="section">
+    ${backBtn('Change screens')}
+    <h2>What's wrong?</h2>
+    ${state.restored ? '<p class="caption">Restored your unsent report from this phone.</p>' : ''}
+    ${head}${off}${p1}
+    <fieldset style="border:none;padding:0;margin:0" class="field"><legend class="label" style="margin-bottom:8px">Symptom${picked.length > 1 ? ', applies to all selected screens' : ''}</legend>
+      <div class="tags">${SYMPTOMS.map(([v, l]) => `<label class="tog"><input type="checkbox" name="sym" value="${v}" ${f.symptoms.includes(v) ? 'checked' : ''}><span class="tag">${l}</span></label>`).join('')}</div>
+    </fieldset>
+    <div><div class="label" style="margin-bottom:8px">Checks before escalating, all required</div>
+      <div class="checks">${CHECKS.map(([v, l]) => `<label class="check"><input type="checkbox" name="chk" value="${v}" ${f.checks.includes(v) ? 'checked' : ''}><span>${l}</span></label>`).join('')}</div>
+    </div>
+    <div class="field">
+      <label for="add-photo">Photos of the screen and player <span class="caption">(optional, up to ${MAX_PHOTOS}, resized on your phone)</span></label>
+      <input id="photo" type="file" accept="image/*" multiple hidden>
+      <div class="thumbs" id="thumbs"></div>
+      <button class="btn-secondary" id="add-photo" type="button">Add photos</button>
+      <p class="caption" id="photo-note" hidden></p>
+    </div>
+    <div class="field"><label for="notes">What you've found</label><textarea id="notes" placeholder="e.g. Player has power but no network light. Restarted twice.">${esc(f.notes)}</textarea></div>
+    <div class="field"><label for="job">Clarksons job number</label><input id="job" type="text" placeholder="Optional" value="${esc(f.job)}"></div>
+    <p class="err" id="f-err" hidden></p>
+    <button class="btn-primary" id="send" type="button">Send to HYPER desk</button>
+  </section>`;
+  state.restored = false;
+  $('#back').onclick = back;
+  const collect = () => {
+    f.symptoms = [...document.querySelectorAll('input[name=sym]:checked')].map(i => i.value);
+    f.checks = [...document.querySelectorAll('input[name=chk]:checked')].map(i => i.value);
+    f.notes = $('#notes').value.trim();
+    f.job = $('#job').value.trim();
+  };
+  const v = $('#view'); v.oninput = v.onchange = e => { if (e.target.id !== 'photo'){ collect(); saveDraft(); } };
+  const thumbs = () => {
+    $('#thumbs').innerHTML = f.photos.map((p, i) => `<button type="button" class="thumb" data-i="${i}" aria-label="Remove photo ${i + 1}, ${kb(p)} KB"><img src="${p}" alt=""><span class="x">${ICON_X}</span></button>`).join('');
+    document.querySelectorAll('.thumb').forEach(b => b.onclick = () => { f.photos.splice(Number(b.dataset.i), 1); thumbs(); });
+    $('#add-photo').hidden = f.photos.length >= MAX_PHOTOS;
+  };
+  thumbs();
+  $('#add-photo').onclick = () => $('#photo').click();
+  $('#photo').onchange = async e => {
+    const files = [...e.target.files]; e.target.value = '';
+    const note = $('#photo-note'); note.hidden = true;
+    for (const file of files){
+      if (f.photos.length >= MAX_PHOTOS){ note.textContent = `Up to ${MAX_PHOTOS} photos. Remove one to add another.`; note.hidden = false; break; }
+      try { f.photos.push(await shrink(file)); thumbs(); }
+      catch(err){ note.textContent = "Couldn't read one of the photos. Try taking it again."; note.hidden = false; }
+    }
+  };
+  $('#send').onclick = () => {
+    collect();
+    const errs = [];
+    if (!f.symptoms.length) errs.push('pick at least one symptom');
+    if (f.checks.length < CHECKS.length) errs.push(`complete all ${CHECKS.length} checks`);
+    if (errs.length){ const e = $('#f-err'); e.textContent = 'Before sending: ' + errs.join(', ') + '.'; e.hidden = false; return; }
+    go('done');
+  };
+}
+
+/* Confirmation: the tickets the live version would create, one per screen */
+function viewDone(){
+  steps(4); whoLine();
+  const s = state.site, f = state.form, t = state.tech;
+  const tks = buildTickets({ site: s, picked: state.picked, form: f, tech: { ...t, job: f.job }, bySiteMap: bySite });
+  const p1 = wholeSite();
+  const sym = SYMPTOMS.filter(([v]) => f.symptoms.includes(v)).map(([, l]) => l).join(', ');
+  $('#view').innerHTML = `<section class="section">
+    <h2 class="done">${tks.length === 1 ? 'Sent to the HYPER desk' : `${tks.length} tickets sent to the HYPER desk`}</h2>
+    <p class="body-sm">The desk will triage remotely and call you on <span class="mono">${esc(fmtPhone(t.phone))}</span> if they need you on site.</p>
+    <dl class="kv">
+      <dt>${tks.length === 1 ? 'Ticket' : 'Tickets'}</dt><dd>${tks.length === 1 ? esc(tks[0].name) : `<ul>${tks.map(k => `<li>${esc(k.name)} <span class="mono">${esc(k.code)}</span></li>`).join('')}</ul>`}</dd>
+      <dt>Site</dt><dd>${esc(s.name)}</dd>
+      <dt>Priority</dt><dd>${p1 ? 'P1 Critical, whole site' : 'P2 High'}</dd>
+      <dt>Symptom</dt><dd>${esc(sym)}</dd>
+      <dt>Checks</dt><dd>All ${CHECKS.length} done</dd>
+      <dt>Photos</dt><dd>${f.photos.length ? `${f.photos.length} (${f.photos.map(kb).join(' + ')} KB)` : 'None'}</dd>
+      ${f.job ? `<dt>Job number</dt><dd>${esc(f.job)}</dd>` : ''}
+    </dl>
+    <div class="actions"><button class="btn-primary" id="again" type="button">Raise another at this site</button><button class="btn-secondary" id="newsite" type="button">New site</button></div>
+  </section>
+  <section class="section" style="margin-top:var(--space-xl)">
+    <div class="label">For the build: what the live version sends to monday</div>
+    <p class="caption">One create_item per selected screen on Support Tickets, group "New and in triage". Labels by name. Photos are attached to the first ticket of the batch; the others say where to find them. The server also checks each screen for an open ticket and, if there is one, links it in the Related ticket column and adds "Possible duplicate of" to the description. The technician is not asked.</p>
+    <pre>${esc(JSON.stringify(tks.map(k => ({ item_name: k.name, column_values: k.cols })), null, 2))}</pre>
+  </section>`;
+  // Sent: clear the draft and the selection so going back cannot resend the same tickets.
+  clearDraft(); state.form = blank(); state.picked = [];
+  $('#again').onclick = () => { saveDraft(); go('screens'); };
+  $('#newsite').onclick = () => { state.site = null; clearDraft(); go('site'); };
+}
+
+const first = !ready() ? 'tech' : (loadDraft() ? (state.picked.length ? 'form' : 'screens') : 'site');
+go(first, { replace: true });
+</script>
+</body>
+</html>

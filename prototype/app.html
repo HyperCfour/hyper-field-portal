@@ -204,6 +204,7 @@ const buildTickets = ({ site, picked, form, tech, bySiteMap }) => {
       screen_ref: x.code,
       t_screen: { item_ids: [Number(x.id)] },
       req_type: { label: 'Fault' },
+      net_ref: { label: 'Mobil' },
       channel: { label: 'Partner escalation' },
       raised_org: { label: 'Partner' },
       priority: { label: p1 ? 'P1 Critical' : 'P2 High' },
@@ -470,7 +471,7 @@ function viewDone(){
   </section>
   <section class="section" style="margin-top:var(--space-xl)">
     <div class="label">For the build: what the live version sends to monday</div>
-    <p class="caption">One create_item per selected screen on Support Tickets, group "New and in triage". Labels by name. Photos are attached to the first ticket of the batch; the others say where to find them. The server also checks each screen for an open ticket and, if there is one, links it in the Related ticket column and adds "Possible duplicate of" to the description. The technician is not asked.</p>
+    <p class="caption">One create_item per selected screen on Support Tickets, group "New and in triage". Labels by name. Photos are attached to the first ticket of the batch; the others say where to find them. The server also checks each screen for an open ticket and, if there is one, links it in the Parent ticket column and adds "Possible duplicate of" to the description. The technician is not asked.</p>
     <pre>${esc(JSON.stringify(tks.map(k => ({ item_name: k.name, column_values: k.cols })), null, 2))}</pre>
   </section>`;
   // Sent: clear the draft and the selection so going back cannot resend the same tickets.

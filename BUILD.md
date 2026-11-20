@@ -47,13 +47,13 @@ This portal is field-driven and separate from the n8n daily offline check, which
 
 ## Reads
 
-Screens (paginate with `next_items_page`). The device-name column must be included; its id is still to be confirmed (shown as `device_name` below):
+Screens (paginate with `next_items_page`). The device name is the `legacy_ids` column ("Device name / legacy IDs" on the register; Support Tickets mirrors it as "Device name", `lookup_mm90eg2z`):
 
 ```graphql
-query { boards(ids:[18436511524]) { items_page(limit:500, query_params:{rules:[{column_id:"lifecycle", compare_value:[6,3], operator:not_any_of}]}) { cursor items { id name group { id } column_values(ids:["device_name","reg_site","legacy_ids","position","cms","lifecycle","health","offline_since"]) { id text ... on BoardRelationValue { linked_item_ids } } } } } }
+query { boards(ids:[18436511524]) { items_page(limit:500, query_params:{rules:[{column_id:"lifecycle", compare_value:[6,3], operator:not_any_of}]}) { cursor items { id name group { id } column_values(ids:["legacy_ids","reg_site","position","cms","lifecycle","health","offline_since"]) { id text ... on BoardRelationValue { linked_item_ids } } } } } }
 ```
 
-Keep `group.id == group_mm8baqwb`. Sites: `items(ids:[...site ids])` with `street`, `region`.
+Keep `group.id == group_mm8baqwb`. Sites: `items(ids:[...site ids])` with `street`, `region`, `site_status`. Label ids confirmed 17 Nov 2026: lifecycle Live 1, Out of rotation 7, Decommissioned 6, Removed 3; health Online 1, Offline 0, Unknown 2, Paused 7.
 
 Display name in the screen list: the device name with everything up to the first dash removed ("Mobil 10th Ave - Menu Board 1" shows as "Menu Board 1"). About 20 register names abbreviate the site, so do not strip the literal site name. No site name contains a dash.
 
@@ -67,6 +67,7 @@ Display name in the screen list: the device name with everything up to the first
 | Screen ID (as reported) | screen_ref | Register item name, e.g. MM173 |
 | Screen | t_screen | `{"item_ids":[<register item id>]}` |
 | Request type | req_type | `{"label":"Fault"}` |
+| Network (as reported) | net_ref | `{"label":"Mobil"}` |
 | Channel | channel | `{"label":"Partner escalation"}` |
 | Raised by organisation | raised_org | `{"label":"Partner"}` |
 | Priority | priority | `{"label":"P2 High"}`, or `P1 Critical` under the whole site rule |
@@ -76,7 +77,7 @@ Display name in the screen list: the device name with everything up to the first
 | Contact phone | c_phone | `{"phone":"+6421...","countryShortName":"NZ"}`. NZ mobiles only, normalised to +64 on the device and again on the server. monday's docs show both `+E.164` and bare-digit forms; confirm on the first live write |
 | Partner reference | partner_ref | Clarksons job number, if given |
 | Description | description | `{"text":"<batch line>\n<notes>"}` |
-| Related ticket | **new column, id to confirm** | Connect-boards column to Support Tickets, set by the server when the screen already has an open ticket (see Duplicates) |
+| Parent ticket | parent_tkt | Existing self-link column on Support Tickets. Set by the server to the open ticket for the same screen, when there is one (see Duplicates) |
 | Photos | t_photos | `add_file_to_column` after create, first ticket of the batch only |
 
 Existing board automations then: set status New and assign, start SLA clocks and due dates. Leave `t_status` unset.
@@ -85,10 +86,10 @@ Existing board automations then: set status New and assign, start SLA clocks and
 
 The technician is never asked about existing tickets. At submit time, for each selected screen, the server queries Support Tickets for open items linked to that screen (`t_screen` contains the register item id, `t_status` not Closed 19 or Cancelled 17; the same definition the n8n check uses). If one exists:
 
-- set **Related ticket** on the new ticket to the existing one;
+- set **Parent ticket** (`parent_tkt`) on the new ticket to the existing one;
 - prepend "Possible duplicate of <existing ticket name>. " to the description.
 
-The desk then sees both the proactive ticket and the field ticket, which usually carries more detail for triage, and decides how to merge them. This needs a new connect-boards column on Support Tickets (Support Tickets to itself); create it and record the id here.
+The desk then sees both the proactive ticket and the field ticket, which usually carries more detail for triage, and decides how to merge them. `parent_tkt` already exists on the board, so no schema change is needed.
 
 ## Rules
 
@@ -97,6 +98,33 @@ The desk then sees both the proactive ticket and the field ticket, which usually
 - Validation server-side too: at least one symptom, all four checks, name, NZ mobile; at least one screen; every screen id must be on the register and in the Mobil group.
 - Photos optional, max 4, resized client-side; reject any single file over 1 MB server-side as a backstop.
 - No dashes in user-facing copy; NZ English. Device names from the register are data and keep their dashes.
+
+## Live app (`web/`)
+
+Next.js 15 (App Router, TypeScript) in `web/`. Vercel project root directory: `web`.
+
+```
+web/
+  app/page.tsx              the portal (renders components/Portal.tsx)
+  app/access/page.tsx       access code screen
+  app/api/access/route.ts   POST {code}: sets the access cookie
+  app/api/register/route.ts GET: Mobil sites and screens from monday, cached 10 minutes
+  app/api/tickets/route.ts  POST: validates, checks for open tickets, creates one ticket per screen, attaches photos
+  middleware.ts             gate: no access cookie means /access (pages) or 401 (API)
+  lib/shared.mjs            pure helpers shared with the browser: phone, names, whole-site rule, ticket payloads
+  lib/monday.ts             monday GraphQL client and file upload
+  lib/register.ts           register read and shaping
+  lib/tickets.ts            validation, duplicate check, create, photos
+  lib/access.ts             access cookie
+  public/                   colors_and_type.css, fonts/, assets/ (same files as the prototype)
+  tests/                    node --test, no network
+```
+
+Environment variables (Vercel project settings, never in git): `MONDAY_TOKEN` (service account), `PORTAL_CODE` (the Clarksons access code). Copy `.env.example` to `.env.local` to run locally.
+
+Commands: `npm install`, `npm test`, `npm run dev` (http://localhost:3000), `npm run build`. Deploy: `vercel` from `web/` (preview) or `vercel --prod`.
+
+Rate limiting in v1 is a best-effort in-memory limit per IP (10 submissions per 10 minutes per warm instance) plus hard caps (screens must belong to the chosen site, 4 photos, 1 MB each). A durable limiter needs Vercel KV or Upstash; add it before opening the portal beyond Clarksons.
 
 ## Register clean-up before launch
 

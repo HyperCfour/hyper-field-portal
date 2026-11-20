@@ -1,0 +1,321 @@
+/* ==========================================================================
+   HYPER DESIGN SYSTEM — Colors, Type, and Tokens
+   --------------------------------------------------------------------------
+   Black-stage minimalism. Ultra-thin Neue Montreal.
+   Vivid Coral primary accent (#F63762), Coral secondary (#FF5654),
+   Mint contrast (#53C8A8). Neutrals dominate every viewport.
+   Load this file once and every downstream component picks up the tokens.
+   ========================================================================== */
+
+/* ------------------------------------------------------------------
+   FONT FACE — Neue Montreal (local OTF) + JetBrains Mono (CDN)
+   ------------------------------------------------------------------ */
+@font-face { font-family: 'Neue Montreal'; src: url('./fonts/NeueMontreal-Light.otf') format('opentype');        font-weight: 300; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Neue Montreal'; src: url('./fonts/NeueMontreal-LightItalic.otf') format('opentype');  font-weight: 300; font-style: italic; font-display: swap; }
+@font-face { font-family: 'Neue Montreal'; src: url('./fonts/NeueMontreal-Regular.otf') format('opentype');      font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Neue Montreal'; src: url('./fonts/NeueMontreal-Italic.otf') format('opentype');       font-weight: 400; font-style: italic; font-display: swap; }
+@font-face { font-family: 'Neue Montreal'; src: url('./fonts/NeueMontreal-Medium.otf') format('opentype');       font-weight: 500; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Neue Montreal'; src: url('./fonts/NeueMontreal-MediumItalic.otf') format('opentype'); font-weight: 500; font-style: italic; font-display: swap; }
+@font-face { font-family: 'Neue Montreal'; src: url('./fonts/NeueMontreal-Bold.otf') format('opentype');         font-weight: 700; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Neue Montreal'; src: url('./fonts/NeueMontreal-BoldItalic.otf') format('opentype');   font-weight: 700; font-style: italic; font-display: swap; }
+
+/* JetBrains Mono — consumers should load this <link> in <head>:
+   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"> */
+
+
+/* ------------------------------------------------------------------
+   PRIMITIVES — raw color ramps. Reference via semantic tokens below.
+   ------------------------------------------------------------------ */
+:root {
+  /* Neutral (pure, no tint) */
+  --neutral-50:  #FAFAFA;
+  --neutral-100: #F5F5F5;
+  --neutral-200: #E5E5E5;
+  --neutral-300: #D4D4D4;
+  --neutral-400: #A3A3A3;
+  --neutral-500: #737373;
+  --neutral-600: #525252;
+  --neutral-700: #404040;
+  --neutral-800: #262626;
+  --neutral-900: #1B1B1B;
+  --neutral-950: #000000;
+
+  /* Brand (Vivid Coral) — anchor on 500 */
+  --brand-50:  #FFF0F3;
+  --brand-100: #FFE0E7;
+  --brand-200: #FFC2D0;
+  --brand-300: #FF99B0;
+  --brand-400: #FB6A8B;
+  --brand-500: #F63762;   /* Vivid Coral — primary accent */
+  --brand-600: #E21241;
+  --brand-700: #B30F34;   /* --accent-text in light mode */
+  --brand-800: #8E0B29;
+  --brand-900: #650B1F;
+  --brand-950: #360812;
+
+  /* Coral (secondary chromatic — graphs, infographics, animations) */
+  --coral:        #FF5654;
+  --coral-subtle: rgba(255, 86, 84, 0.12);
+
+  /* Mint (contrast accent for binaries — do/don't, on/off) */
+  --mint:        #53C8A8;
+  --mint-subtle: rgba(83, 200, 168, 0.15);
+
+  /* Status */
+  --green-500:  #22C55E;
+  --amber-500:  #F59E0B;
+  --red-500:    #F63762;
+}
+
+
+/* ------------------------------------------------------------------
+   SEMANTIC TOKENS — Dark mode is the primary expression.
+   ------------------------------------------------------------------ */
+:root,
+[data-theme="dark"] {
+  /* Surfaces */
+  --bg:              var(--neutral-950); /* #000000 — the void */
+  --surface1:        var(--neutral-900); /* #1B1B1B — cards */
+  --surface2:        var(--neutral-800); /* #262626 — nested / inputs */
+  --surface3:        var(--neutral-700); /* #404040 — tertiary */
+
+  /* Borders */
+  --border:          var(--neutral-800); /* subtle */
+  --border-visible:  var(--neutral-700); /* intentional */
+
+  /* Text */
+  --text1: var(--neutral-50);            /* headings / body */
+  --text2: var(--neutral-400);           /* secondary */
+  --text3: var(--neutral-500);           /* tertiary / metadata */
+  --text4: var(--neutral-600);           /* disabled / ghost */
+
+  /* Accent & semantic */
+  --accent:         var(--brand-500);    /* Vivid Coral */
+  --accent-hover:   var(--brand-600);
+  --accent-text:    var(--brand-500);    /* dark mode: same as --accent (5.64:1 on black) */
+  --accent-subtle:  var(--brand-950);
+  --success:        var(--green-500);
+  --success-bg:     rgba(34, 197, 94, 0.12);
+  --warning:        var(--amber-500);
+  --warning-bg:     rgba(245, 158, 11, 0.12);
+  --error:          var(--red-500);
+  --error-bg:       rgba(246, 55, 98, 0.12);
+  --on-accent:      #FFFFFF;
+
+  /* Overlay */
+  --overlay-backdrop: rgba(0, 0, 0, 0.80);
+}
+
+[data-theme="light"] {
+  --bg:              var(--neutral-50);  /* #FAFAFA */
+  --surface1:        var(--neutral-100); /* #F5F5F5 */
+  --surface2:        var(--neutral-200); /* #E5E5E5 */
+  --surface3:        var(--neutral-300); /* #D4D4D4 */
+
+  --border:          var(--neutral-200);
+  --border-visible:  var(--neutral-300);
+
+  --text1: var(--neutral-950); /* #000 */
+  --text2: var(--neutral-600);
+  --text3: var(--neutral-500);
+  --text4: var(--neutral-400);
+
+  /* Accent: Vivid Coral remains the primary accent in light mode for UI
+     components (buttons, focus rings, status pills) and for large text.
+     For inline accent text at body size or smaller, use --accent-text
+     (#B30F34, brand-700) which meets WCAG AA against #FAFAFA. */
+  --accent:         var(--brand-500);    /* #F63762 */
+  --accent-hover:   var(--brand-600);
+  --accent-text:    var(--brand-700);    /* #B30F34 — inline accent text in light mode */
+  --accent-subtle:  var(--brand-50);
+  --success:        var(--green-500);
+  --success-bg:     rgba(34, 197, 94, 0.08);
+  --warning:        var(--amber-500);
+  --warning-bg:     rgba(245, 158, 11, 0.08);
+  --error:          var(--red-500);
+  --error-bg:       rgba(246, 55, 98, 0.08);
+  --on-accent:      #FFFFFF;
+
+  --overlay-backdrop: rgba(0, 0, 0, 0.50);
+}
+
+
+/* ------------------------------------------------------------------
+   TYPE SCALE — tokens + semantic element styles.
+   Display/H1/H2 are Light (300). H3 is Regular (400). Bold is banned.
+   ------------------------------------------------------------------ */
+:root {
+  --font-sans: 'Neue Montreal', system-ui, -apple-system, 'Helvetica Neue', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --text-display:  72px;
+  --text-h1:       48px;
+  --text-h2:       32px;
+  --text-h3:       24px;
+  --text-body:     16px;
+  --text-body-sm:  14px;
+  --text-caption:  12px;
+  --text-label:    11px;
+
+  --lh-display: 1.0;
+  --lh-h1:      1.05;
+  --lh-h2:      1.15;
+  --lh-h3:      1.2;
+  --lh-body:    1.5;
+  --lh-caption: 1.4;
+  --lh-label:   1.2;
+
+  --tracking-display: -0.03em;
+  --tracking-h1:      -0.02em;
+  --tracking-h2:      -0.01em;
+  --tracking-body:    0;
+  --tracking-caption: 0.01em;
+  --tracking-label:   0.06em;
+}
+
+
+/* ------------------------------------------------------------------
+   SPACING, RADII, MOTION
+   ------------------------------------------------------------------ */
+:root {
+  --space-2xs: 2px;
+  --space-xs:  4px;
+  --space-sm:  8px;
+  --space-md:  16px;
+  --space-lg:  24px;
+  --space-xl:  32px;
+  --space-2xl: 48px;
+  --space-3xl: 64px;
+  --space-4xl: 96px;
+
+  --radius-element:   4px;   /* checkboxes, tiny inputs */
+  --radius-control:   8px;   /* buttons, inputs         */
+  --radius-component: 8px;   /* cards, panels           */
+  --radius-container: 8px;   /* modals, sheets          */
+  --radius-pill:      999px; /* tags, badges            */
+
+  /* Flat elevation — no shadows. */
+  --shadow-1: none;
+  --shadow-2: none;
+  --shadow-3: none;
+
+  --ease-fast:   ease-out;
+  --ease-medium: ease-in-out;
+  --ease-slow:   cubic-bezier(0.4, 0, 0.2, 1);
+  --duration-fast:   150ms;
+  --duration-medium: 300ms;
+  --duration-slow:   700ms;
+}
+
+
+/* ------------------------------------------------------------------
+   SEMANTIC ELEMENT STYLES
+   These are defaults. Apply them only inside .hyper or on <body>
+   of pages that have opted into the system — never globally.
+   ------------------------------------------------------------------ */
+.hyper,
+body.hyper {
+  background: var(--bg);
+  color: var(--text1);
+  font-family: var(--font-sans);
+  font-weight: 400;
+  font-size: var(--text-body);
+  line-height: var(--lh-body);
+  letter-spacing: var(--tracking-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Headings — weight 300 is the brand voice. Never 700. */
+.hyper h1, .hyper .h1,
+.hyper h2, .hyper .h2 {
+  font-family: var(--font-sans);
+  font-weight: 300;
+  color: var(--text1);
+  margin: 0;
+}
+.hyper .display {
+  font-size: var(--text-display);
+  line-height: var(--lh-display);
+  letter-spacing: var(--tracking-display);
+  font-weight: 300;
+}
+.hyper h1, .hyper .h1 {
+  font-size: var(--text-h1);
+  line-height: var(--lh-h1);
+  letter-spacing: var(--tracking-h1);
+}
+.hyper h2, .hyper .h2 {
+  font-size: var(--text-h2);
+  line-height: var(--lh-h2);
+  letter-spacing: var(--tracking-h2);
+}
+.hyper h3, .hyper .h3 {
+  font-size: var(--text-h3);
+  line-height: var(--lh-h3);
+  letter-spacing: 0;
+  font-weight: 400;
+  color: var(--text1);
+  margin: 0;
+}
+
+/* Body & small text */
+.hyper p, .hyper .body {
+  font-size: var(--text-body);
+  line-height: var(--lh-body);
+  color: var(--text2);
+  margin: 0;
+  max-width: 680px; /* line length limit */
+}
+.hyper .body-sm {
+  font-size: var(--text-body-sm);
+  line-height: var(--lh-body);
+  color: var(--text2);
+}
+.hyper .caption {
+  font-size: var(--text-caption);
+  line-height: var(--lh-caption);
+  letter-spacing: var(--tracking-caption);
+  color: var(--text3);
+}
+
+/* Labels — always uppercase, 500 weight, wide tracking */
+.hyper .label,
+.hyper label.label {
+  font-size: var(--text-label);
+  line-height: var(--lh-label);
+  letter-spacing: var(--tracking-label);
+  font-weight: 500;
+  color: var(--text3);
+  text-transform: uppercase;
+}
+
+/* Mono — code only */
+.hyper code,
+.hyper pre,
+.hyper .mono {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text2);
+}
+
+/* Links — underline white, never blue. */
+.hyper a {
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px solid currentColor;
+  transition: opacity var(--duration-fast) var(--ease-fast);
+}
+.hyper a:hover { opacity: 0.7; }
+
+/* Inline accent text — uses --accent-text so it stays AA-compliant in light mode */
+.hyper .accent-text {
+  color: var(--accent-text);
+}
+
+/* Focus ring — Vivid Coral, offset */
+.hyper :focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: 2px;
+}

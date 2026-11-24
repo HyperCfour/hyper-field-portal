@@ -23,8 +23,10 @@ body.hyper{margin:0;padding:0 max(24px,env(safe-area-inset-right,0px)) var(--spa
 
 /* Banner: the retailer's logo above the title, and the brand picker on a portal with several.
    A logo file is public/assets/banners/<banner id>.svg; without one the name is shown as text. */
-.banner-mark{height:32px;width:auto;max-width:200px;object-fit:contain;object-position:left center;display:block;margin-bottom:var(--space-sm)}
+.banner-mark{height:40px;width:auto;max-width:200px;object-fit:contain;object-position:left center;display:block;margin-bottom:var(--space-sm)}
 .banner-mark.banner-text{display:none}
+/* Supplied logos sit on white; multiply lets the page colour show through instead of a white box. */
+img.banner-mark,img.banner-card-mark{mix-blend-mode:multiply}
 .banners{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-md)}
 @media (max-width:420px){.banners{grid-template-columns:1fr}}
 .banner-card{display:grid;place-items:center;height:auto;min-height:120px;padding:var(--space-lg);background:var(--surface1);border:1px solid var(--border);border-radius:var(--radius-component);color:var(--text1)}

@@ -18,7 +18,7 @@ The live app serves one portal per retailer from the same deployment. Each has i
 - **Brand step.** A portal with more than one banner (Briscoe Group) starts by asking which brand; the rest of the flow is then scoped to it. Single-banner portals skip it.
 - **Logos.** Drop a file at `web/public/assets/banners/<banner id>.svg` (or `.png`, `.webp`); ids are `mobil`, `foursquare`, `liquorland`, `briscoes`, `rebel-sport`. It shows above the title and on the brand step. Without a file the brand name is shown as text on the brand step and nothing above the title.
 - **Raised by** reads "Name (Clarksons)", "Name (Foursquare store)" or "Name (Briscoes head office)". The Clarksons job number is only asked on the Mobil portal.
-- **Symptoms and the four checks are the same on every portal.** The checks were written for technicians; confirm they suit store owners and head office before launch.
+- **Symptoms and the four checks are the same on every portal.** Confirmed 25 Nov 2026: the same checks apply to store owners and head office.
 - **Access codes.** `PORTAL_CODE_MOBIL`, `PORTAL_CODE_FOURSQUARE`, `PORTAL_CODE_LIQUORLAND`, `PORTAL_CODE_BRISCOE_GROUP`. `PORTAL_CODE` is a fallback for any portal without its own; leave it unset in production.
 - **The CMS is never read or shown.** It is internal to HYPER.
 

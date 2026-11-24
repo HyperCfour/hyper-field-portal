@@ -4,6 +4,26 @@ Prototype: `prototype/app.html` + `prototype/data.js` (snapshot of the Screen Re
 
 The prototype uses the Hyper design system: `prototype/colors_and_type.css` (tokens, type scale, dark and light themes), `prototype/fonts/` (Neue Montreal) and `prototype/assets/` (logo SVGs). Keep these files together with `app.html`. The Next.js build should load the same stylesheet and fonts; see the design skill's `references/platform-mapping.md` for the Next.js on Vercel pattern. Light theme only, locked on the page (`data-theme="light"`), since most use is on a forecourt in daylight. The system's status hues are tuned for dark, so small status text (tags, notices) uses darker tones of the same hues (`--ok-text #15803D`, `--warn-text #B45309`, and the system's `--accent-text` for coral) to meet AA on #FAFAFA; the tinted fills are the system's own. One column, phone first, that sits comfortably on a desktop (640px max, wider side padding above 720px, hover styles only on devices with a pointer).
 
+## Portals (one code base, one Vercel project)
+
+The live app serves one portal per retailer from the same deployment. Each has its own address, its own access code and its own sign-in cookie, and only ever reads its own group on the Screen Register. The bare address lists nothing, so one retailer never sees another. Everything retailer-specific is in `web/lib/portals.mjs`; adding a retailer is one entry there plus an access code.
+
+| Address | Register group(s) | Network label on tickets | Who raises | Raised by organisation / Channel |
+|---|---|---|---|---|
+| `/mobil` | Mobil `group_mm8baqwb` | Mobil | Clarksons technician | Partner / Partner escalation |
+| `/foursquare` | Foursquare `group_mm8bhsmq` | Foursquare | Store owner or operator, or head office (asked in Your details) | Store or Client / QR / web form |
+| `/liquorland` | Liquorland `group_mm8bd7rg` | Liquorland | Store owner or operator, or head office | Store or Client / QR / web form |
+| `/briscoe-group` | Briscoes `group_mm8bjcme`, Rebel Sport `group_mm8bj6v` | Briscoes or Rebel Sport, from the screen's group | Head office | Client / QR / web form |
+
+- **Brand step.** A portal with more than one banner (Briscoe Group) starts by asking which brand; the rest of the flow is then scoped to it. Single-banner portals skip it.
+- **Logos.** Drop a file at `web/public/assets/banners/<banner id>.svg` (or `.png`, `.webp`); ids are `mobil`, `foursquare`, `liquorland`, `briscoes`, `rebel-sport`. It shows above the title and on the brand step. Without a file the brand name is shown as text on the brand step and nothing above the title.
+- **Raised by** reads "Name (Clarksons)", "Name (Foursquare store)" or "Name (Briscoes head office)". The Clarksons job number is only asked on the Mobil portal.
+- **Symptoms and the four checks are the same on every portal.** The checks were written for technicians; confirm they suit store owners and head office before launch.
+- **Access codes.** `PORTAL_CODE_MOBIL`, `PORTAL_CODE_FOURSQUARE`, `PORTAL_CODE_LIQUORLAND`, `PORTAL_CODE_BRISCOE_GROUP`. `PORTAL_CODE` is a fallback for any portal without its own; leave it unset in production.
+- **The CMS is never read or shown.** It is internal to HYPER.
+
+The sections below were written for Mobil / Clarksons and describe the flow every portal shares; `prototype/` is still the Mobil-only click-through.
+
 ## Purpose
 
 Clarksons technicians find the Mobil site they are at, pick the screen or screens from the registered list and raise a ticket into HYPER's Support Tickets board. The ticket links to the screen by monday item ID, so there is no typed Screen ID, no match step and no dirty data. Replaces QR stickers for Mobil.
@@ -14,7 +34,7 @@ This portal is field-driven and separate from the n8n daily offline check, which
 
 1. **Your details**: name and NZ mobile (required, used for the callback). "Remember me on this phone" is on by default and keeps them on the device, so the step is skipped next time; unticked, they last for the visit only (shared device). An Edit link in the header reopens this step.
 2. **Find the site**: search name, street or town; "Use my location" sorts by distance (site coordinates geocoded once from the Sites board addresses).
-3. **Pick the screens**: the site's screens by device name, with Screen ID, position, CMS and status (Online / Offline Nd / Paused / Switched off / Not yet seen). One or more can be selected. "Select all live screens" selects every Live screen at the site; switched-off screens can be added individually, with a warning. A screen that isn't listed isn't on the register and cannot be supported through the portal: the note tells the technician to call the desk. There is no unregistered-screen path.
+3. **Pick the screens**: the site's screens by device name, with Screen ID, position and status (Online / Offline Nd / Paused / Switched off / Not yet seen). One or more can be selected. "Select all live screens" selects every Live screen at the site; switched-off screens can be added individually, with a warning. A screen that isn't listed isn't on the register and cannot be supported through the portal: the note tells the technician to call the desk. There is no unregistered-screen path.
 4. **What's wrong**: symptom (required, applies to every selected screen), the four pre-escalation checks (all required), photos (optional, up to 4, resized on the phone), notes, Clarksons job number (optional; it changes per job, so it is asked here rather than kept with the profile).
 5. **Sent**: confirmation listing the ticket per screen.
 
@@ -50,10 +70,10 @@ This portal is field-driven and separate from the n8n daily offline check, which
 Screens (paginate with `next_items_page`). The device name is the `legacy_ids` column ("Device name / legacy IDs" on the register; Support Tickets mirrors it as "Device name", `lookup_mm90eg2z`):
 
 ```graphql
-query { boards(ids:[18436511524]) { items_page(limit:500, query_params:{rules:[{column_id:"lifecycle", compare_value:[6,3], operator:not_any_of}]}) { cursor items { id name group { id } column_values(ids:["legacy_ids","reg_site","position","cms","lifecycle","health","offline_since"]) { id text ... on BoardRelationValue { linked_item_ids } } } } } }
+query { boards(ids:[18436511524]) { items_page(limit:500, query_params:{rules:[{column_id:"lifecycle", compare_value:[6,3], operator:not_any_of}]}) { cursor items { id name group { id } column_values(ids:["legacy_ids","reg_site","position","lifecycle","health","offline_since"]) { id text ... on BoardRelationValue { linked_item_ids } } } } } }
 ```
 
-Keep `group.id == group_mm8baqwb`. Sites: `items(ids:[...site ids])` with `street`, `region`, `site_status`. Label ids confirmed 17 Nov 2026: lifecycle Live 1, Out of rotation 7, Decommissioned 6, Removed 3; health Online 1, Offline 0, Unknown 2, Paused 7.
+Keep `group.id == group_mm8baqwb`. The CMS column is internal to HYPER and is not read: it must not appear in the technician-facing app. Sites: `items(ids:[...site ids])` with `street`, `region`, `site_status`. Label ids confirmed 17 Nov 2026: lifecycle Live 1, Out of rotation 7, Decommissioned 6, Removed 3; health Online 1, Offline 0, Unknown 2, Paused 7.
 
 Display name in the screen list: the device name with everything up to the first dash removed ("Mobil 10th Ave - Menu Board 1" shows as "Menu Board 1"). About 20 register names abbreviate the site, so do not strip the literal site name. No site name contains a dash.
 
@@ -105,12 +125,14 @@ Next.js 15 (App Router, TypeScript) in `web/`. Vercel project root directory: `w
 
 ```
 web/
-  app/page.tsx              the portal (renders components/Portal.tsx)
-  app/access/page.tsx       access code screen
-  app/api/access/route.ts   POST {code}: sets the access cookie
-  app/api/register/route.ts GET: Mobil sites and screens from monday, cached 10 minutes
-  app/api/tickets/route.ts  POST: validates, checks for open tickets, creates one ticket per screen, attaches photos
-  middleware.ts             gate: no access cookie means /access (pages) or 401 (API)
+  app/page.tsx                        bare address: "use the link you were given", lists no retailers
+  app/[portal]/page.tsx               a portal (renders components/Portal.tsx with that portal's config)
+  app/[portal]/access/page.tsx        its access code screen
+  app/api/p/[portal]/access/route.ts  POST {code}: sets that portal's access cookie
+  app/api/p/[portal]/register/route.ts GET: that portal's sites and screens from monday, cached 10 minutes
+  app/api/p/[portal]/tickets/route.ts POST: validates, checks for open tickets, creates one ticket per screen, attaches photos
+  middleware.ts             gate: no access cookie for the portal means /<portal>/access (pages) or 401 (API)
+  lib/portals.mjs           the portals: banners, register groups, ticket labels, roles
   lib/shared.mjs            pure helpers shared with the browser: phone, names, whole-site rule, ticket payloads
   lib/monday.ts             monday GraphQL client and file upload
   lib/register.ts           register read and shaping
@@ -120,9 +142,9 @@ web/
   tests/                    node --test, no network
 ```
 
-Environment variables (Vercel project settings, never in git): `MONDAY_TOKEN` (service account), `PORTAL_CODE` (the Clarksons access code). Copy `.env.example` to `.env.local` to run locally.
+Environment variables (Vercel project settings, never in git): `MONDAY_TOKEN` (service account) and one `PORTAL_CODE_<PORTAL>` per portal (see Portals). Copy `.env.example` to `.env.local` to run locally.
 
-Commands: `npm install`, `npm test`, `npm run dev` (http://localhost:3000), `npm run build`. Deploy: `vercel` from `web/` (preview) or `vercel --prod`.
+Commands: `npm install`, `npm test`, `npm run dev` (http://localhost:3000/mobil and the other portal addresses), `npm run build`. Deploy: `vercel` from `web/` (preview) or `vercel --prod`.
 
 Rate limiting in v1 is a best-effort in-memory limit per IP (10 submissions per 10 minutes per warm instance) plus hard caps (screens must belong to the chosen site, 4 photos, 1 MB each). A durable limiter needs Vercel KV or Upstash; add it before opening the portal beyond Clarksons.
 
@@ -137,7 +159,7 @@ Found in the 16 Nov snapshot (504 screens, 112 sites):
 
 ## Later
 
-- Other partners (Epay for Impulse, Wisley/contractors for NZ Post): same portal, network picked from the access code.
+- Other partners (Epay for Impulse, Wisley/contractors for NZ Post): add a portal in `web/lib/portals.mjs`.
 - Ticket status page per technician (their open tickets, closure confirmations).
 - Store-facing version without checks, to replace store QR printouts.
 - Location sorting (needs the Sites lat/long columns filled).

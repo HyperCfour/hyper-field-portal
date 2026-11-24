@@ -3,7 +3,7 @@ import './globals.css';
 
 export const metadata: Metadata = {
   title: 'HYPER Field Support',
-  description: 'Raise a Mobil screen fault with the HYPER desk.',
+  description: 'Raise a screen fault with the HYPER desk.',
   icons: { icon: '/assets/hyper-block-h.svg' },
   robots: { index: false, follow: false },
 };

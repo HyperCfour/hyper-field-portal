@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { ValidationError, createTickets, validate } from '../../../lib/tickets';
+import { getPortal } from '../../../../../lib/portals.mjs';
+import { ValidationError, createTickets, validate } from '../../../../../lib/tickets';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
@@ -15,20 +16,24 @@ function limited(ip: string): boolean {
   return recent.length > LIMIT;
 }
 
-export async function POST(req: Request) {
+export async function POST(req: Request, ctx: { params: Promise<{ portal: string }> }) {
+  const { portal: slug } = await ctx.params;
+  const portal = getPortal(slug);
+  if (!portal) return NextResponse.json({ error: 'Not found.' }, { status: 404 });
+
   const ip = req.headers.get('x-forwarded-for')?.split(',')[0].trim() || 'unknown';
   if (limited(ip)) return NextResponse.json({ error: 'Too many submissions. Wait a few minutes or call the HYPER desk.' }, { status: 429 });
 
   const body = await req.json().catch(() => null);
-  const v = validate(body);
+  const v = validate(body, portal);
   if (!v.ok) return NextResponse.json({ error: v.error }, { status: 400 });
 
   try {
-    const result = await createTickets(v.sub);
+    const result = await createTickets(v.sub, portal);
     return NextResponse.json(result);
   } catch (err) {
     if (err instanceof ValidationError) return NextResponse.json({ error: err.message }, { status: 400 });
-    console.error('ticket creation failed', err);
+    console.error('ticket creation failed', slug, err);
     return NextResponse.json({ error: "Couldn't reach the HYPER desk system. Your report is still on this phone: try again, or call the desk." }, { status: 502 });
   }
 }

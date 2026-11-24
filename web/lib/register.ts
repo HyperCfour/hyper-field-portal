@@ -1,30 +1,32 @@
-// Screen Register and Sites, shaped for the portal. Mobil group only, Decommissioned and Removed excluded.
-// Cached for 10 minutes so register changes show quickly without a monday call per visit.
+// Screen Register and Sites, shaped for one portal: only that portal's banners, Decommissioned and Removed excluded.
+// Cached per portal for 10 minutes so register changes show quickly without a monday call per visit.
 
 import { unstable_cache } from 'next/cache';
-import { BOARDS, GROUPS, gql } from './monday';
+import { BOARDS, gql } from './monday';
+import { BANNERS, getPortal } from './portals.mjs';
 
-export type Site = { id: string; name: string; street: string; region: string; status: string };
+export type Site = { id: string; name: string; street: string; region: string; status: string; banner: string };
 export type Screen = {
-  id: string; code: string; device: string; position: string; cms: string;
-  lifecycle: string; health: string; since: string; site: string;
+  id: string; code: string; device: string; position: string;
+  lifecycle: string; health: string; since: string; site: string; banner: string;
 };
 export type Register = { sites: Site[]; screens: Screen[]; fetchedAt: string };
 
 type ColumnValue = { id: string; text: string | null; linked_item_ids?: string[] };
 type Item = { id: string; name: string; group?: { id: string }; column_values: ColumnValue[] };
 
-const SCREEN_COLS = '["legacy_ids","reg_site","position","cms","lifecycle","health","offline_since"]';
+const SCREEN_COLS = '["legacy_ids","reg_site","position","lifecycle","health","offline_since"]';
+// The CMS is internal to HYPER: it is not read, so it never reaches the technician's phone.
 const ITEM_FIELDS = `id name group { id } column_values(ids: ${SCREEN_COLS}) { id text ... on BoardRelationValue { linked_item_ids } }`;
 
 const col = (it: Item, id: string) => it.column_values.find(c => c.id === id);
 
-async function fetchScreens(): Promise<Screen[]> {
+async function fetchScreens(banner: string, group: string): Promise<Screen[]> {
   const items: Item[] = [];
-  // Scoped to the Mobil group server-side: about a third of the items and a third of the time of a whole-board read.
+  // Scoped to the banner's group server-side, so a portal never reads another retailer's screens.
   const first = await gql<{ boards: { groups: { items_page: { cursor: string | null; items: Item[] } }[] }[] }>(
     `query ($b: [ID!], $g: [String!]) { boards(ids: $b) { groups(ids: $g) { items_page(limit: 500, query_params: { rules: [{ column_id: "lifecycle", compare_value: [6, 3], operator: not_any_of }] }) { cursor items { ${ITEM_FIELDS} } } } } }`,
-    { b: [BOARDS.register], g: [GROUPS.mobil] },
+    { b: [BOARDS.register], g: [group] },
   );
   let page = first.boards[0]?.groups[0]?.items_page;
   if (!page) throw new Error('Screen Register not readable');
@@ -39,21 +41,21 @@ async function fetchScreens(): Promise<Screen[]> {
     items.push(...page.items);
   }
   return items
-    .filter(it => it.group?.id === GROUPS.mobil)
+    .filter(it => it.group?.id === group)
     .map(it => ({
       id: String(it.id),
       code: it.name,
       device: col(it, 'legacy_ids')?.text || it.name,
       position: col(it, 'position')?.text || '',
-      cms: col(it, 'cms')?.text || '',
       lifecycle: col(it, 'lifecycle')?.text || '',
       health: col(it, 'health')?.text || '',
       since: col(it, 'offline_since')?.text || '',
       site: String(col(it, 'reg_site')?.linked_item_ids?.[0] ?? ''),
+      banner,
     }));
 }
 
-async function fetchSites(ids: string[]): Promise<Site[]> {
+async function fetchSites(ids: string[], bannerOf: Map<string, string>): Promise<Site[]> {
   const out: Site[] = [];
   // items(ids:) returns 25 by default and allows at most 100 ids per call, so chunk and set the limit explicitly.
   for (let i = 0; i < ids.length; i += 100) {
@@ -68,18 +70,24 @@ async function fetchSites(ids: string[]): Promise<Site[]> {
         street: col(it, 'street')?.text || '',
         region: col(it, 'region')?.text || '',
         status: col(it, 'site_status')?.text || '',
+        banner: bannerOf.get(String(it.id)) || '',
       });
     }
   }
   return out.sort((a, b) => a.name.localeCompare(b.name));
 }
 
-async function fetchRegister(): Promise<Register> {
-  const screens = await fetchScreens();
-  const siteIds = [...new Set(screens.map(s => s.site).filter(Boolean))];
-  const sites = (await fetchSites(siteIds)).filter(s => s.status !== 'Closed');
+async function fetchRegister(slug: string): Promise<Register> {
+  const portal = getPortal(slug);
+  if (!portal) throw new Error(`Unknown portal ${slug}`);
+  const screens: Screen[] = [];
+  for (const id of portal.banners) screens.push(...(await fetchScreens(id, BANNERS[id].group)));
+  // A site takes the banner of its screens.
+  const bannerOf = new Map<string, string>();
+  for (const s of screens) if (s.site && !bannerOf.has(s.site)) bannerOf.set(s.site, s.banner);
+  const sites = (await fetchSites([...bannerOf.keys()], bannerOf)).filter(s => s.status !== 'Closed');
   const known = new Set(sites.map(s => s.id));
   return { sites, screens: screens.filter(s => known.has(s.site)), fetchedAt: new Date().toISOString() };
 }
 
-export const getRegister = unstable_cache(fetchRegister, ['field-portal-register-v2'], { revalidate: 600 });
+export const getRegister = unstable_cache(fetchRegister, ['field-portal-register-v4'], { revalidate: 600 });

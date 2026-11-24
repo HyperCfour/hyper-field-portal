@@ -52,10 +52,11 @@ export const isWholeSite = (site, picked, screens) => {
  * @param {Array<{id:string,code:string,device:string}>} args.picked
  * @param {{symptoms:string[],checks:string[],notes:string,job?:string,photos:string[]}} args.form
  * @param {{name:string,phone:string}} args.tech
+ * @param {{network:string,org:string,channel:string,raisedBy:string}} args.meta  from ticketMeta() in portals.mjs
  * @param {Array<object>} args.screens  every screen at the site (for the whole-site rule)
  * @param {Record<string,{id:string,name:string}>} [args.related]  open ticket per screen id, from the server
  */
-export function buildTickets({ site, picked, form, tech, screens, related = {} }) {
+export function buildTickets({ site, picked, form, tech, meta, screens, related = {} }) {
   const p1 = isWholeSite(site, picked, screens);
   const first = picked[0];
   return picked.map((x, i) => {
@@ -71,13 +72,13 @@ export function buildTickets({ site, picked, form, tech, screens, related = {} }
       screen_ref: x.code,
       t_screen: { item_ids: [Number(x.id)] },
       req_type: { label: 'Fault' },
-      net_ref: { label: 'Mobil' },
-      channel: { label: 'Partner escalation' },
-      raised_org: { label: 'Partner' },
+      net_ref: { label: meta.network },
+      channel: { label: meta.channel },
+      raised_org: { label: meta.org },
       priority: { label: p1 ? 'P1 Critical' : 'P2 High' },
       symptom: { ids: form.symptoms.map(Number) },
       prechecks: { ids: [1, ...form.checks.map(Number), ...(form.photos.length ? [6] : [])] },
-      raised_by: `${tech.name} (Clarksons)`,
+      raised_by: meta.raisedBy,
       c_phone: { phone: tech.phone, countryShortName: 'NZ' },
       ...(form.job ? { partner_ref: form.job } : {}),
       ...(dup ? { parent_tkt: { item_ids: [Number(dup.id)] } } : {}),

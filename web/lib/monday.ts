@@ -11,8 +11,7 @@ export const BOARDS = {
 } as const;
 
 export const GROUPS = {
-  triage: 'group_mm8ba8qc', // Support Tickets: New and in triage
-  mobil: 'group_mm8baqwb', // Screen Register: Mobil
+  triage: 'group_mm8ba8qc', // Support Tickets: New and in triage. Register groups are in portals.mjs.
 } as const;
 
 export const STATUS = {

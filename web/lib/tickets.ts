@@ -2,10 +2,12 @@
 
 import { BOARDS, GROUPS, STATUS, addFile, gql } from './monday';
 import { getRegister, type Screen, type Site } from './register';
+import { ROLES, ticketMeta, type PortalConfig } from './portals.mjs';
 import { CHECKS, MAX_PHOTOS, NOTES_MAX, PHOTO_MAX_BYTES, SYMPTOMS, buildTickets, nzMobile } from './shared.mjs';
 
 export type Submission = {
   tech: { name: string; phone: string };
+  role: string;
   siteId: string;
   screenIds: string[];
   symptoms: string[];
@@ -23,13 +25,16 @@ const CHECK_IDS = CHECKS.map(([v]) => v);
 const str = (v: unknown, max = 200) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
 const arr = (v: unknown) => (Array.isArray(v) ? v.map(x => String(x)) : []);
 
-export function validate(body: unknown): { ok: true; sub: Submission } | { ok: false; error: string } {
+export function validate(body: unknown, portal: PortalConfig): { ok: true; sub: Submission } | { ok: false; error: string } {
   const b = (body && typeof body === 'object' ? body : {}) as Record<string, unknown>;
   const tech = (b.tech && typeof b.tech === 'object' ? b.tech : {}) as Record<string, unknown>;
   const name = str(tech.name, 80);
   const phone = nzMobile(str(tech.phone, 30));
   if (!name) return { ok: false, error: 'Add your name.' };
   if (!phone) return { ok: false, error: 'Enter an NZ mobile number.' };
+  // One role on the portal: it is that role whatever was sent. Several: the sender must pick one of them.
+  const role = portal.roles.length === 1 ? portal.roles[0] : str(b.role, 30);
+  if (!portal.roles.includes(role)) return { ok: false, error: 'Say whether you are at the store or at head office.' };
   const siteId = str(b.siteId, 30);
   const screenIds = [...new Set(arr(b.screenIds))].slice(0, 50);
   if (!siteId || !screenIds.length) return { ok: false, error: 'Pick at least one screen.' };
@@ -42,7 +47,7 @@ export function validate(body: unknown): { ok: true; sub: Submission } | { ok: f
     if (!/^data:image\/jpeg;base64,/.test(p)) return { ok: false, error: 'Photos must be JPEG.' };
     if (p.length * 0.75 > PHOTO_MAX_BYTES) return { ok: false, error: 'A photo is too large. Try again from the camera.' };
   }
-  return { ok: true, sub: { tech: { name, phone }, siteId, screenIds, symptoms, checks, notes: str(b.notes, NOTES_MAX), job: str(b.job, 60), photos } };
+  return { ok: true, sub: { tech: { name, phone }, role, siteId, screenIds, symptoms, checks, notes: str(b.notes, NOTES_MAX), job: ROLES[role].jobLabel ? str(b.job, 60) : '', photos } };
 }
 
 // Open tickets (not Closed, not Cancelled) linked to any of the given screens. Same definition as the n8n daily check.
@@ -74,8 +79,8 @@ function decodeDataUrl(p: string): { bytes: ArrayBuffer; type: string } {
   return { bytes, type: m[1] };
 }
 
-export async function createTickets(sub: Submission): Promise<Result> {
-  const reg = await getRegister();
+export async function createTickets(sub: Submission, portal: PortalConfig): Promise<Result> {
+  const reg = await getRegister(portal.slug);
   const site: Site | undefined = reg.sites.find(s => s.id === sub.siteId);
   if (!site) throw new ValidationError('That site is not on the register any more. Go back and pick it again.');
   const atSite = reg.screens.filter(s => s.site === site.id);
@@ -87,7 +92,9 @@ export async function createTickets(sub: Submission): Promise<Result> {
   }
 
   const related = await openTicketsByScreen(picked.map(p => p.id));
-  const tickets = buildTickets({ site, picked, form: sub, tech: sub.tech, screens: atSite, related });
+  // The banner comes from the register, never from the browser.
+  const meta = ticketMeta(sub.tech.name, sub.role, site.banner);
+  const tickets = buildTickets({ site, picked, form: sub, tech: sub.tech, meta, screens: atSite, related });
 
   const created: Created[] = [];
   for (const t of tickets) {

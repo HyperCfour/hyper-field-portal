@@ -338,7 +338,7 @@ function viewScreens(){
     ${backBtn('Change site')}
     <div><div class="label">${esc(s.region)}</div><h2>${esc(s.name)}</h2><div class="caption">${esc(s.street)}</div></div>
     <div class="between"><div class="label">Which screens have the fault? ${list.length} registered</div><button class="btn-ghost" id="all" type="button"></button></div>
-    <div class="rows" id="list">${list.map(x => `<button class="row" type="button" data-id="${x.id}" aria-pressed="${sel(x.id)}"><div><div class="t">${esc(shortName(x))}</div><div class="m"><span class="mono">${esc(x.code)}</span>, ${esc(x.position)}, ${esc(x.cms)}</div></div><div class="end">${ICON_CHECK}${tag(x)}</div></button>`).join('')}</div>
+    <div class="rows" id="list">${list.map(x => `<button class="row" type="button" data-id="${x.id}" aria-pressed="${sel(x.id)}"><div><div class="t">${esc(shortName(x))}</div><div class="m"><span class="mono">${esc(x.code)}</span>, ${esc(x.position)}</div></div><div class="end">${ICON_CHECK}${tag(x)}</div></button>`).join('')}</div>
     <p class="caption">Screen not listed? It isn't on HYPER's register, so it can't be supported through this form. Call the HYPER desk.</p>
     <p class="notice notice-p1" id="whole" hidden>All ${live.length} live screens selected. This is raised as P1 Critical, one ticket per screen.</p>
     <button class="btn-primary" id="next" type="button">Continue</button>
